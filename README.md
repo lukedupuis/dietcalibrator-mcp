@@ -64,14 +64,17 @@ Build first (`npm run build`), then register the server:
 }
 ```
 
-Or run it against the [MCP Inspector](https://github.com/modelcontextprotocol/inspector)
-without a build:
+Then ask the model things like *"calibrate 2200 calories at 30/40/30, then plan my day."*
+
+### Or explore it in the MCP Inspector
 
 ```bash
-npm run inspector
+npm run inspector   # builds, then launches the Inspector against dist/index.js over stdio
 ```
 
-Then ask the model things like *"calibrate 2200 calories at 30/40/30, then plan my day."*
+Open the token-prefilled URL the CLI prints, make sure **Transport Type** is **STDIO**
+(Command `node`, Arguments `dist/index.js`), and click **Connect**. Then use the Tools /
+Resources / Prompts tabs to call `calibrate_macros`, read `foods://saved`, and so on.
 
 ## Data & persistence
 
