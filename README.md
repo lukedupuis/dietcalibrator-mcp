@@ -4,7 +4,7 @@
 
 A [Model Context Protocol](https://modelcontextprotocol.io) server that exposes the
 **DietCalibrator** nutrition engine — Atwater calorie math, macro calibration, and daily
-food logging — to any MCP client (Claude Code, Claude Desktop, the MCP Inspector, …) as
+food logging — to any MCP client (Claude Code, Claude Desktop, …) as
 **tools, resources, and prompts**.
 
 It's a small, self-contained dev tool: the calibration logic is a faithful port of a real
@@ -48,9 +48,36 @@ Three ideas from the original app, ported verbatim and unit-tested:
   percent that sum to *exactly* 100.0 (naive rounding drifts to 99.9/100.1). See
   [`src/domain/calories.ts`](src/domain/calories.ts).
 
-## Use it from Claude Code
+## Try it
 
-Build first (`npm run build`), then register the server:
+**1. Run the tests** — the fastest proof the whole thing works (domain math, store, and a real
+MCP client↔server round-trip):
+
+```bash
+npm install
+npm test
+```
+
+**2. Call a tool from the command line** — deterministic, no browser, one command each:
+
+```bash
+npm run build
+# list the tools
+npx @modelcontextprotocol/inspector --cli node dist/index.js --method tools/list
+# calibrate 2000 kcal at the default split
+npx @modelcontextprotocol/inspector --cli node dist/index.js --method tools/call --tool-name calibrate_macros --tool-arg calsGoal=2000
+# read the bundled foods library
+npx @modelcontextprotocol/inspector --cli node dist/index.js --method resources/read --uri foods://saved
+```
+
+**3. Use it from an MCP client** (Claude Code / Claude Desktop) — the real experience. With the
+Claude Code CLI:
+
+```bash
+claude mcp add dietcalibrator -- node /absolute/path/to/dietcalibrator-mcp/dist/index.js
+```
+
+…or register it by hand:
 
 ```jsonc
 // .mcp.json (project) or your Claude Desktop config
@@ -58,23 +85,25 @@ Build first (`npm run build`), then register the server:
   "mcpServers": {
     "dietcalibrator": {
       "command": "node",
-      "args": ["C:\\path\\to\\dietcalibrator-mcp\\dist\\index.js"]
+      "args": ["/absolute/path/to/dietcalibrator-mcp/dist/index.js"]
     }
   }
 }
 ```
 
-Then ask the model things like *"calibrate 2200 calories at 30/40/30, then plan my day."*
+Then ask the model things like *"calibrate 2200 calories at 30/40/30, log 2 servings of chicken
+breast, and show my day's totals."*
 
-### Or explore it in the MCP Inspector
+<details>
+<summary>Optional: the MCP Inspector web UI</summary>
 
-```bash
-npm run inspector   # builds, then launches the Inspector against dist/index.js over stdio
-```
+`npm run inspector` builds and launches the [MCP Inspector](https://github.com/modelcontextprotocol/inspector)'s
+browser UI against `dist/index.js` over stdio (Transport **STDIO**, Command `node`, Arguments
+`dist/index.js`, then **Connect**). It's handy for clicking through tools, but its browser
+Connect step can be unreliable on some setups — if it hangs, use the deterministic **`--cli`**
+commands above, which exercise the exact same server.
 
-Open the token-prefilled URL the CLI prints, make sure **Transport Type** is **STDIO**
-(Command `node`, Arguments `dist/index.js`), and click **Connect**. Then use the Tools /
-Resources / Prompts tabs to call `calibrate_macros`, read `foods://saved`, and so on.
+</details>
 
 ## Data & persistence
 
