@@ -8,7 +8,8 @@ food logging — to any MCP client (Claude Code, Claude Desktop, …) as
 **tools, resources, and prompts**.
 
 It's a small, self-contained dev tool: the calibration logic is a faithful port of a real
-app I built ([dietcalibrator.com](https://www.dietcalibrator.com)), and it ships with a
+app I built in 2016 and rebuilt with various frameworks over the years
+([dietcalibrator.com](https://www.dietcalibrator.com)), and it ships with a
 bundled foods library so it **runs cold — no database, no API keys, no credentials.**
 
 ```bash
