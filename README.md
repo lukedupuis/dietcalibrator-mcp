@@ -46,8 +46,8 @@ Three ideas from the original app, ported verbatim and unit-tested:
   targets: `grams = calsGoal · (percent/100) / caloriesPerGram`. Default split is
   **25% fat / 55% carb / 20% protein**.
 - **Largest-remainder macro %** — reporting each macro's share of calories as tenths of a
-  percent that sum to *exactly* 100.0 (naive rounding drifts to 99.9/100.1). See
-  [`src/domain/calories.ts`](src/domain/calories.ts).
+  percent that sum to *exactly* 100.0 (rounding each share on its own drifts to 99.9/100.1).
+  See [`src/domain/calories.ts`](src/domain/calories.ts).
 
 ## Try it
 

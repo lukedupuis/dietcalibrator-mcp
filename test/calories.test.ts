@@ -1,5 +1,30 @@
 import { describe, expect, it } from "vitest";
-import { calcCalories, macroPercentages } from "../src/domain/calories.js";
+import { calcCalories, macroPercentages, round } from "../src/domain/calories.js";
+
+describe("round", () => {
+  it("rounds half up without binary floating-point drift", () => {
+    // The naive `Math.round(v * 10**d) / 10**d` rounds these *down* because the
+    // multiply loses precision (e.g. 1.005 * 100 === 100.49999999999999).
+    expect(round(1.005, 2)).toBe(1.01);
+    expect(round(2.675, 2)).toBe(2.68);
+    expect(round(0.45, 1)).toBe(0.5);
+  });
+
+  it("rounds negatives symmetrically (half away from zero)", () => {
+    expect(round(-1.005, 2)).toBe(-1.01);
+    expect(round(-0.45, 1)).toBe(-0.5);
+    expect(round(-2.5, 0)).toBe(-3);
+    expect(round(2.5, 0)).toBe(3);
+  });
+
+  it("normalizes -0 to 0", () => {
+    expect(Object.is(round(-0.04, 1), 0)).toBe(true);
+  });
+
+  it("defaults to one decimal place", () => {
+    expect(round(3.14159)).toBe(3.1);
+  });
+});
 
 describe("calcCalories", () => {
   it("applies the Atwater factors (fat 9, carb 4, protein 4)", () => {
