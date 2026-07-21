@@ -7,10 +7,27 @@ import type { Macros } from "./types.js";
  */
 export const ATWATER = { fat: 9, carb: 4, prot: 4 } as const;
 
-/** Round to `decimals` places (1 by default), matching the app's `roundFloat`. */
+/**
+ * Round `value` to `decimals` places (1 by default).
+ *
+ * The obvious `Math.round(value * 10**decimals) / 10**decimals` is wrong twice
+ * over: multiplying introduces binary floating-point error (`1.005 * 100` is
+ * `100.49999999999999`, which rounds *down* to `1.00`), and `Math.round` breaks
+ * ties toward +∞, so negatives round asymmetrically (`Math.round(-0.5)` is `-0`
+ * but `Math.round(0.5)` is `1`). Both matter here — `round` is applied to signed
+ * quantities like weight deltas and remaining-to-goal.
+ *
+ * Instead we shift the decimal point with exponential string notation (which the
+ * number parser resolves without the multiply error) and break ties by rounding
+ * half away from zero, so +x and -x round symmetrically.
+ */
 export function round(value: number, decimals = 1): number {
-  const f = 10 ** decimals;
-  return Math.round(value * f) / f;
+  if (!Number.isFinite(value)) return value;
+  const sign = value < 0 ? -1 : 1;
+  const shifted = Number(`${Math.abs(value)}e${decimals}`);
+  const rounded = Math.round(shifted);
+  const result = sign * Number(`${rounded}e${-decimals}`);
+  return result === 0 ? 0 : result; // normalize -0 to 0
 }
 
 /** Calories in a set of macros: `fats*9 + carbs*4 + prots*4`. */
@@ -22,11 +39,11 @@ export function calcCalories({ fats, carbs, prots }: Macros): number {
  * Share of total calories coming from each macro, in whole tenths of a percent
  * that sum to *exactly* 100.0.
  *
- * Naively rounding each share independently can yield 99.9% or 100.1%. This
- * ports the original app's largest-remainder apportionment: compute each share
- * in tenths-of-a-percent, floor them, then hand the leftover tenths to the
- * macros with the largest fractional parts. A faithful reproduction of
- * `TotalsModel.calculatePercentages`.
+ * Rounding each share independently can yield 99.9% or 100.1%. This ports the
+ * original app's largest-remainder apportionment, which sums to exactly 100.0:
+ * compute each share in tenths-of-a-percent, floor them, then hand the leftover
+ * tenths to the macros with the largest fractional parts. A faithful
+ * reproduction of `TotalsModel.calculatePercentages`.
  */
 export function macroPercentages(macros: Macros): {
   fatPct: number;
